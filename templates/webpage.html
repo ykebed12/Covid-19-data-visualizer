@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<link rel="stylesheet" href="{{ url_for('static', filename='./leaflet/leaflet.css') }}" />
+	<script src="{{ url_for('static', filename='./leaflet/leaflet.js') }}"></script>
+	<script src="{{ url_for('static', filename='./jquery-3.6.0.min.js') }}"></script>
+
+	<link rel="stylesheet"
+		href="{{ url_for('static', filename='./Leaflet.markercluster/dist/MarkerCluster.Default.css') }}" />
+	<link rel="stylesheet" href="{{ url_for('static', filename='./Leaflet.markercluster/dist/MarkerCluster.css') }}" />
+	<script
+		src="{{ url_for('static', filename='./Leaflet.markercluster/dist/leaflet.markercluster-src.js') }}"></script>
+
+	<style>
+		#map {
+			position: absolute;
+			top: 0;
+			bottom: 0;
+			left: 0;
+			right: 0;
+		}
+
+		#datePicker {
+			position: absolute;
+			height: 40px;
+			top: 100px;
+			bottom: 20px;
+			padding: 10px;
+			z-index: 20;
+		}
+	</style>
+</head>
+
+<body>
+	<input type="date" id="datePicker">
+
+	<div id="map"></div>
+
+	<script>
+		var map = L.map('map', { maxZoom: 18, maxWidth: 100}).setView([0, 0], 1);
+
+
+		
+
+		// Display geojson of california and center it
+		$.getJSON("{{ url_for('static', filename='./geojsonfiles/CA.geo.json') }}", function (data) {
+			layer = L.geoJson(data).addTo(map);
+			map.fitBounds(layer.getBounds())
+		});
+
+
+		//code for pop up
+		function onEachFeature(feature, layer) {
+			var popupContent = "<p>State: " +
+				feature.properties.state + "<br>County: " + feature.properties.name + "</p>";
+
+			layer.bindPopup(popupContent);
+		}
+		// Display county boundries
+		{% for county_dir in dir_of_counties %}
+
+		$.getJSON("{{ url_for('static', filename=county_dir )}}", function (data) {
+			L.geoJson(data,{
+				onEachFeature:onEachFeature
+			}).addTo(map);
+		});
+
+		{% endfor %}
+
+
+		// Display states geojson
+		// {% for state_dir in dir_of_states %}
+
+		// $.getJSON("{{ url_for('static', filename=state_dir )}}", function (data) {
+		// 	L.geoJson(data).addTo(map);
+		// });
+
+		// {% endfor %}
+
+		// Add a pane to bring markers infront of map
+		map.createPane('prisonMarkers');
+		map.getPane('prisonMarkers').style.zIndex = 401;
+		map.getPane('prisonMarkers').style.pointerEvents = 'none';
+
+		//create marker cluster
+		var markerCluster = L.markerClusterGroup({ chunkedLoading: true });
+
+
+		// Make a marker for each facility in california
+		{% for facility in facilities %}
+
+		marker = L.circleMarker([{{ facility[5] }}, {{ facility[4] }}], {
+			color: "#FF4500",
+			pane: "prisonMarkers",
+			fillOpacity: 0.7
+		})
+		marker.bindPopup("Prison: {{facility[1]}} <br>Covid Cases: ")
+		markerCluster.addLayer(marker);
+
+		{% endfor %}
+
+		map.addLayer(markerCluster);
+
+	</script>
+</body>
+
+</html>
