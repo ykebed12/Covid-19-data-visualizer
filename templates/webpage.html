@@ -16,6 +16,10 @@
 	<link rel="stylesheet" href="{{ url_for('static', filename='./Leaflet.markercluster/dist/MarkerCluster.css') }}" />
 	<script
 		src="{{ url_for('static', filename='./Leaflet.markercluster/dist/leaflet.markercluster-src.js') }}"></script>
+	
+	<!-- Javascript file for relevant functions -->
+	<script src="{{ url_for('static', filename='./Functions.js') }}"></script>
+
 
 	<style>
 		#map {
@@ -44,17 +48,98 @@
 
 	<script>
 		var map = L.map('map', { maxZoom: 18, maxWidth: 100}).setView([0, 0], 1);
+		var countiesData; // Contain most recent county data
+
+		function highlightFeature(e) {
+			var layer = e.target;
+
+			layer.setStyle({
+				weight: 5,
+				color: '#666',
+				dashArray: '',
+				fillOpacity: 0.7
+			});
+
+			if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+				layer.bringToFront();
+			}
+		}
+
+		function resetHighlight(e) {
+    		countiesLayer.resetStyle(e.target);
+
+			var layer = e.target;
+			var countyName = layer.feature.properties.name;
+			if (countiesData && countiesData[countyName]) {
+				
+				var countyData = countiesData[countyName];
+
+				layer.setStyle({
+					fillColor: getColor(countyData["Cases"])
+				});
+			}
+
+		}
+
+		function zoomToFeature(e) {
+    		map.fitBounds(e.target.getBounds());
+			
+		}
+
+		// Function that will include the counts of cases and deaths in 
+		function county_handler(e) {
+			var date = e.target.value + " 00:00:00";
+			$.ajax({
+				type: "GET",
+				url: "/county_data/" + date,
+				cache: false,
+				success: function (data) {
+					data = JSON.parse(data)
+					countiesData = data
+					countiesLayer.eachLayer(function (layer) {
+						
+
+						var countyName = layer.feature.properties.name
+						var stateName = layer.feature.properties.state
+						var countyData = data[countyName]
+
+
+						
+						var popupContent =
+							"<p>State: " + stateName +
+							"<br>County: " + countyName +
+							"<br>Cases: " + countyData["Cases"] +
+							"<br>Deaths: " + countyData["Deaths"] +
+							"<br>Date: " + countyData["Closest_Date"] + "</p>";
+
+						layer.bindPopup(popupContent)
+						layer.setStyle({
+							fillColor: getColor(countyData["Cases"])
+						})
+							
+						
+					})
+				}
+					
+			})
+		}
 
 		//code for pop up
 		function onEachFeature(feature, layer) {
-			var popupContent = "<p>State: " +
-				feature.properties.state + "<br>County: " + feature.properties.name + "</p>";
+			var popupContent = 
+				"<p>State: " + feature.properties.state +
+				"<br>County: " + feature.properties.name + "</p>";
 
 			layer.bindPopup(popupContent);
-		}
-		// Display county boundries
 
+			layer.on({
+				mouseover: highlightFeature,
+				mouseout: resetHighlight,
+				click: zoomToFeature
+			});
+		}
 		
+		// Display county boundries
 		var countiesLayer = L.geoJson(CaliforniaCounties, {
 			onEachFeature: onEachFeature
 		}).addTo(map);
@@ -62,14 +147,7 @@
 		map.fitBounds(countiesLayer.getBounds())
 
 
-		// Display states geojson
-		// {% for state_dir in dir_of_states %}
-
-		// $.getJSON("{{ url_for('static', filename=state_dir )}}", function (data) {
-		// 	L.geoJson(data).addTo(map);
-		// });
-
-		// {% endfor %}
+		
 
 		// Add a pane to bring markers infront of map
 		map.createPane('prisonMarkers');

@@ -7,6 +7,7 @@ from flask.cli import with_appcontext
 from os import listdir
 from os.path import isfile, join, isdir
 import sqlite3
+import json
 
 
 app = Flask(__name__)
@@ -21,6 +22,32 @@ def get_db():
     return db
 
 
+def get_counties_data(selected_date, state_name="California"):
+    cursor = get_db().cursor()
+    sql = f'SELECT * FROM CountiesData WHERE StateName="{state_name}" and Date="{selected_date}"'
+
+    # sql = f'''SELECT * FROM tb
+    #                 (SELECT * FROM CountiesData
+    #                     WHERE StateName="{state_name};"
+    #                     ORDER BY ABS( JULIANDAY(Date)  - JULIANDAY("{selected_date}") )
+    #                 ) as tb
+    #             GROUP BY CountyName
+    #             '''
+
+    countiesTable = cursor.execute(sql).fetchall()
+    print(countiesTable)
+    data_dict = dict()
+
+    # Order in sql CountiesData table
+    # `DataID` , `CountyName`,  `StateName`, `Cases` , `Deaths`,  `Date`,
+    for _, county_name, _, cases, deaths, date in countiesTable:
+        data_dict[county_name] = {"Cases": cases,
+                                  "Deaths": deaths,
+                                  "Closest_Date": date}
+
+    return data_dict
+
+
 @app.teardown_appcontext
 def close_connection(exception):
     db = getattr(g, '_database', None)
@@ -31,35 +58,28 @@ def close_connection(exception):
 @app.route('/')
 def home():
 
-    # Get geojson directories of california counties
-    counties_dir = './static/USA/CA/'
-    dir_of_counties = [f"/USA/CA/{filename}" for filename in listdir(
-        counties_dir) if isfile(join(counties_dir, filename))]
-
-    # counties_dir = './static/USA/'
-    # dir_of_counties = []
-
-    # for folder in listdir(counties_dir):
-
-    #     folder_dir = join(counties_dir, folder)
-
-    #     if isdir(folder_dir):
-    #         for county_filename in listdir(folder_dir):
-    #             county_dir = join(folder_dir, county_filename)
-    #             if isfile(county_dir):
-    #                 dir_of_counties.append(county_dir)
-
-    # Get geojson directories of states
-    # states_dir = './static/USA/'
-    # dir_of_states = [f"/USA/{filename}" for filename in listdir(
-    #     states_dir) if isfile(join(states_dir, filename))]
-
     # Get only california facility data from sql database
     cursor = get_db().cursor()
     sql = 'SELECT * FROM Facility WHERE StateName="California"'
     facilities = list(cursor.execute(sql))
 
-    return render_template('webpage.html', dir_of_counties=dir_of_counties, facilities=facilities,)
+    # Get max and min date of county
+    max_county_date, min_county_date = max_min_date_county(
+        state_name='California')
+
+    return render_template('webpage.html',
+                           dir_of_counties=dir_of_counties,
+                           facilities=facilities,
+                           max_county_date=max_county_date,
+                           min_county_date=min_county_date,
+                           max_state_cases=max_state_cases(state_name='California'))
+
+
+@app.route('/county_data/<selected_date>', methods=['GET', 'POST'])
+def county_data_send(selected_date):
+
+    county_data = get_counties_data(selected_date)
+    return json.dumps(county_data)
 
 
 if __name__ == "__main__":
