@@ -36,13 +36,14 @@
 			top: 100px;
 			bottom: 20px;
 			padding: 10px;
-			z-index: 20;
+			z-index: 1000;
 		}
 	</style>
 </head>
 
 <body>
-	<input type="date" id="datePicker">
+	<input type="date" id="datePicker" onchange='county_handler(event);' min="{{ min_county_date }}"
+		max="{{ max_county_date }}">
 
 	<div id="map"></div>
 

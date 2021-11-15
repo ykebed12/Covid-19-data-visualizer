@@ -8,6 +8,8 @@ from os import listdir
 from os.path import isfile, join, isdir
 import sqlite3
 import json
+import time
+from datetime import datetime
 
 
 app = Flask(__name__)
@@ -35,7 +37,6 @@ def get_counties_data(selected_date, state_name="California"):
     #             '''
 
     countiesTable = cursor.execute(sql).fetchall()
-    print(countiesTable)
     data_dict = dict()
 
     # Order in sql CountiesData table
@@ -46,6 +47,17 @@ def get_counties_data(selected_date, state_name="California"):
                                   "Closest_Date": date}
 
     return data_dict
+
+
+def max_min_date_county(state_name='California'):
+    cursor = get_db().cursor()
+    sql = f'SELECT MAX (Date) FROM CountiesData WHERE StateName="{state_name}"'
+    max_date = datetime.fromisoformat(
+        cursor.execute(sql).fetchone()[0]).strftime("%Y-%m-%d")
+    sql = f'SELECT MIN (Date) FROM CountiesData WHERE StateName="{state_name}"'
+    min_date = datetime.fromisoformat(
+        cursor.execute(sql).fetchone()[0]).strftime("%Y-%m-%d")
+    return max_date, min_date
 
 
 @app.teardown_appcontext
@@ -60,7 +72,7 @@ def home():
 
     # Get only california facility data from sql database
     cursor = get_db().cursor()
-    sql = 'SELECT * FROM Facility WHERE StateName="California"'
+    sql = 'SELECT * FROM Facilities WHERE StateName="California"'
     facilities = list(cursor.execute(sql))
 
     # Get max and min date of county
@@ -68,11 +80,9 @@ def home():
         state_name='California')
 
     return render_template('webpage.html',
-                           dir_of_counties=dir_of_counties,
                            facilities=facilities,
                            max_county_date=max_county_date,
-                           min_county_date=min_county_date,
-                           max_state_cases=max_state_cases(state_name='California'))
+                           min_county_date=min_county_date)
 
 
 @app.route('/county_data/<selected_date>', methods=['GET', 'POST'])
