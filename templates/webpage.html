@@ -55,10 +55,10 @@
 			var layer = e.target;
 
 			layer.setStyle({
-				weight: 5,
-				color: '#666',
+				weight: 2,
+				color: "white",
 				dashArray: '',
-				fillOpacity: 0.7
+				fillOpacity: 1
 			});
 
 			if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
@@ -89,7 +89,9 @@
 
 		// Function that will include the counts of cases and deaths in 
 		function county_handler(e) {
+			
 			var date = e.target.value + " 00:00:00";
+			//ajax calls to another webpage route to get counties data for date selected
 			$.ajax({
 				type: "GET",
 				url: "/county_data/" + date,
@@ -125,7 +127,7 @@
 			})
 		}
 
-		//code for pop up
+		//code for pop up before date selection
 		function onEachFeature(feature, layer) {
 			var popupContent = 
 				"<p>State: " + feature.properties.state +
@@ -142,7 +144,12 @@
 		
 		// Display county boundries
 		var countiesLayer = L.geoJson(CaliforniaCounties, {
-			onEachFeature: onEachFeature
+			onEachFeature: onEachFeature,
+			style:{
+				fillColor: "Coral",
+				color: "white",
+				fillOpacity: 1
+			}
 		}).addTo(map);
 
 		map.fitBounds(countiesLayer.getBounds())
@@ -158,14 +165,14 @@
 		//create marker cluster
 		var markerCluster = L.markerClusterGroup({ chunkedLoading: true });
 
-
 		// Make a marker for each facility in california
 		{% for facility in facilities %}
 
 		marker = L.circleMarker([{{ facility[5] }}, {{ facility[4] }}], {
-			color: "#FF4500",
+			color: "White",
+			fillColor: "Red",
 			pane: "prisonMarkers",
-			fillOpacity: 0.7
+			fillOpacity: 1
 		})
 		marker.bindPopup("Prison: {{facility[1]}} <br>Covid Cases: ")
 		markerCluster.addLayer(marker);
