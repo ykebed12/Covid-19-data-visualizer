@@ -153,7 +153,9 @@
 		}).addTo(map);
 
 		map.fitBounds(countiesLayer.getBounds())
-
+		map.options.minZoom = map._zoom
+		map.setMaxBounds(countiesLayer.getBounds())
+		
 
 		
 
