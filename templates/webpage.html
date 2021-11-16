@@ -21,6 +21,10 @@
 	<script src="{{ url_for('static', filename='./Functions.js') }}"></script>
 
 
+	<!-- slider style sheet -->
+	<link rel="stylesheet"
+		href="{{ url_for('static', filename='./sliderStyle.css') }}" />
+
 	<style>
 		#map {
 			position: absolute;
@@ -39,12 +43,30 @@
 			padding: 10px;
 			z-index: 1000;
 		}
+		#colorSelector{
+			position: absolute;
+			height: 40px;
+			top: 175px;
+			bottom: 20px;
+			padding: 10px;
+			z-index: 1000;
+			
+		}
 	</style>
 </head>
 
 <body>
 	<input type="date" id="datePicker" onchange='county_handler(event);' min="{{ min_county_date }}"
 		max="{{ max_county_date }}">
+
+	
+	<div id="colorSelector">
+		<p>Single Color Theme</p>
+	<label class="switch">
+		<input type="checkbox">
+		<span class="slider"></span>
+	</label>
+	</div>
 
 	<div id="map"></div>
 
