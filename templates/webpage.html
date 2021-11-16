@@ -108,18 +108,20 @@
 						var countyData = data[countyName]
 
 
-						
-						var popupContent =
-							"<p>State: " + stateName +
-							"<br>County: " + countyName +
-							"<br>Cases: " + countyData["Cases"] +
-							"<br>Deaths: " + countyData["Deaths"] +
-							"<br>Date: " + countyData["Closest_Date"] + "</p>";
+						if (countyData) {
+							var popupContent =
+								"<p>State: " + stateName +
+								"<br>County: " + countyName +
+								"<br>Cases: " + countyData["Cases"] +
+								"<br>Deaths: " + countyData["Deaths"] +
+								"<br>Date: " + countyData["Closest_Date"] + "</p>";
 
-						layer.bindPopup(popupContent)
-						layer.setStyle({
-							fillColor: getColor(countyData["Cases"])
-						})
+							layer.bindPopup(popupContent);
+							layer.setStyle({
+								fillColor: getColor(countyData["Cases"])
+							});
+						}
+
 							
 						
 					})
