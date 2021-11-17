@@ -74,6 +74,8 @@
 		var map = L.map('map', { maxZoom: 18, maxWidth: 100}).setView([0, 0], 1);
 		var countiesData; // Contain most recent county data
 
+		// Highlight feature when mouse pointer is over 
+		// a county
 		function highlightFeature(e) {
 			var layer = e.target;
 
@@ -89,6 +91,7 @@
 			}
 		}
 
+		// reset highlight when mouse pointer not on a county anymore
 		function resetHighlight(e) {
     		countiesLayer.resetStyle(e.target);
 
@@ -105,6 +108,7 @@
 
 		}
 
+		// Zoom feature when you click on county
 		function zoomToFeature(e) {
     		map.fitBounds(e.target.getBounds());
 			
@@ -119,32 +123,46 @@
 				type: "GET",
 				url: "/county_data/" + date,
 				cache: false,
+				// Function that runs when the webpage route is accessed successfully.
+				// The data from the webpage route is passed to the function.
 				success: function (data) {
+
+					// Parse the data as a JSON object
 					data = JSON.parse(data)
+					// make parsed data available throughout code 
 					countiesData = data
+					
+					// change data for each county layer
 					countiesLayer.eachLayer(function (layer) {
 						
-
+						// get county and state name of layer
 						var countyName = layer.feature.properties.name
 						var stateName = layer.feature.properties.state
+
+						// get county data for specified county from layer and date 
+						// from ajax webpage route
 						var countyData = data[countyName]
 
-
+						// Display the county data if it exists
 						if (countyData) {
+							
+							// create string to output to county popup
 							var popupContent =
 								"<p>State: " + stateName +
 								"<br>County: " + countyName +
 								"<br>Cases: " + countyData["Cases"] +
 								"<br>Deaths: " + countyData["Deaths"] +
 								"<br>Date: " + countyData["Closest_Date"] + "</p>";
-
+							
+							// add popup
 							layer.bindPopup(popupContent);
+
+							// color the layer based on cases
 							layer.setStyle({
 								fillColor: getColor(countyData["Cases"])
 							});
 						}
 
-							
 						
 					})
 				}
@@ -159,7 +177,7 @@
 				"<br>County: " + feature.properties.name + "</p>";
 
 			layer.bindPopup(popupContent);
-
+			
 			layer.on({
 				mouseover: highlightFeature,
 				mouseout: resetHighlight,
@@ -177,13 +195,11 @@
 			}
 		}).addTo(map);
 
+		// Fit bounderies to map and min zoomming out limit
 		map.fitBounds(countiesLayer.getBounds())
 		map.options.minZoom = map._zoom
 		map.setMaxBounds(countiesLayer.getBounds())
 		
-
-		
-
 		// Add a pane to bring markers infront of map
 		map.createPane('prisonMarkers');
 		map.getPane('prisonMarkers').style.zIndex = 401;
@@ -206,6 +222,7 @@
 
 		{% endfor %}
 
+		// add the markercluster to the map
 		map.addLayer(markerCluster);
 
 	</script>

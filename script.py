@@ -28,7 +28,8 @@ def get_db():
     # return db object
     return db
 
-# function counties data based on user input for date and state returns dictionary of county data
+# function counties data based on user input for date and state
+# that returns a dictionary of county data
 
 
 def get_counties_data(selected_date, state_name="California"):
@@ -55,8 +56,8 @@ def get_counties_data(selected_date, state_name="California"):
     # creating dictionary
     data_dict = dict()
 
-    # Order in sql CountiesData table
-    # `DataID` , `CountyName`,  `StateName`, `Cases` , `Deaths`,  `Date`,
+    # Order output of table
+    # nearestDate, county_name, data, cases deate,
     for _, county_name, date, cases, deaths in counties_table:
         data_dict[county_name] = {"Cases": cases,
                                   "Deaths": deaths,
