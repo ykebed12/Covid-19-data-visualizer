@@ -39,7 +39,7 @@ def get_counties_data(selected_date, state_name="California"):
     # sql script to get nearest date data point
     sql = f'''SELECT * 
                 FROM (
-                    SELECT ABS(JULIANDAY(Date) - JULIANDAY("{selected_date}")) as nearestDate,
+                    SELECT ABS(JULIANDAY(Date(Date)) - JULIANDAY("{selected_date}")) as nearestDate,
                                     CountyName,
                                     Date,
                                     Cases,
@@ -62,6 +62,45 @@ def get_counties_data(selected_date, state_name="California"):
         data_dict[county_name] = {"Cases": cases,
                                   "Deaths": deaths,
                                   "Closest_Date": date}
+
+    return data_dict
+
+
+def get_facilities_data(selected_date, state_name="California"):
+    # cursor object for db acts as middle man between programmer and db
+    cursor = get_db().cursor()
+
+    # sql script to get nearest date data point
+    sql = f'''SELECT * 
+                FROM (
+                    SELECT ABS(JULIANDAY(Date(Date)) - JULIANDAY("{selected_date}")) as nearestDate,
+                                    FacilityID
+                                    FacilityName,
+                                    Staffcases,
+                                    ResidentCases,
+                                    CountyName,
+                                    Date
+                    FROM FacilitiesData JOIN Facilities
+                    ON Facilities.FacilityID = FacilitiesData.ID
+                    WHERE StateName="{state_name}"
+                    ORDER BY nearestDate
+                )
+            GROUP BY FacilityID'''
+
+    # fetch returns tuple
+    facilities_table = cursor.execute(sql).fetchall()
+
+    # creating dictionary
+    data_dict = dict()
+
+    # Order output of table
+    for _, _, facility_name, staff_cases, resident_cases, county_name, date in facilities_table:
+        data_dict[facility_name] = {
+            "staff_cases": staff_cases,
+            "resident_cases": resident_cases,
+            "county_name": county_name,
+            "date": date
+        }
 
     return data_dict
 
