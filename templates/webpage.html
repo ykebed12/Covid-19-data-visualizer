@@ -63,7 +63,7 @@
 	<div id="colorSelector">
 		<p>Single Color Theme</p>
 	<label class="switch">
-		<input type="checkbox">
+		<input id="monocolor" type="checkbox" onchange="switchColor(this)">
 		<span class="slider"></span>
 	</label>
 	</div>
@@ -102,7 +102,8 @@
 				var countyData = countiesData[countyName];
 
 				layer.setStyle({
-					fillColor: getColor(countyData["Cases"])
+					fillColor: (document.getElementById("monocolor").checked) ? getColorMono(countyData["Cases"]) :
+																				getColor(countyData["Cases"])
 				});
 			}
 
@@ -159,7 +160,8 @@
 
 							// color the layer based on cases
 							layer.setStyle({
-								fillColor: getColor(countyData["Cases"])
+								fillColor: (document.getElementById("monocolor").checked) ? getColorMono(countyData["Cases"]) :
+																							getColor(countyData["Cases"])
 							});
 						}
 
@@ -194,6 +196,34 @@
 				fillOpacity: 1
 			}
 		}).addTo(map);
+
+		//Single color switch function
+		function switchColor(cb) {
+
+			if (!countiesData) {
+				return;
+			}
+			
+			countiesLayer.eachLayer(function (layer) {
+					
+				// get county and state name of layer
+				var countyName = layer.feature.properties.name
+				// get county data for specified county from layer and date 
+				// from ajax webpage route
+				var countyData = countiesData[countyName]
+
+				// Display the county data if it exists
+				if (countyData && countyData["Cases"]) {
+
+					layer.setStyle({
+								fillColor: cb.checked 	? 	getColorMono(countyData["Cases"]) : 
+															getColor(countyData["Cases"])
+					});
+
+				}
+
+			})
+		}
 
 		// Fit bounderies to map and min zoomming out limit
 		map.fitBounds(countiesLayer.getBounds())
