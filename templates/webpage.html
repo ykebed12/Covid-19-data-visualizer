@@ -73,6 +73,7 @@
 	<script>
 		var map = L.map('map', { maxZoom: 18, maxWidth: 100}).setView([0, 0], 1);
 		var countiesData; // Contain most recent county data
+		var facilitiesData; // Contain most recent facility data
 
 		// Highlight feature when mouse pointer is over 
 		// a county
@@ -121,7 +122,7 @@
 			//ajax calls to another webpage route to get counties data for date selected
 			$.ajax({
 				type: "GET",
-				url: "/county_data/" + date,
+				url: "/data/" + date,
 				cache: false,
 				// Function that runs when the webpage route is accessed successfully.
 				// The data from the webpage route is passed to the function.
@@ -130,7 +131,8 @@
 					// Parse the data as a JSON object
 					data = JSON.parse(data)
 					// make parsed data available throughout code 
-					countiesData = data
+					countiesData = data['counties']
+					facilitiesData = data['facilities']
 					
 					// change data for each county layer
 					countiesLayer.eachLayer(function (layer) {
@@ -141,7 +143,7 @@
 
 						// get county data for specified county from layer and date 
 						// from ajax webpage route
-						var countyData = data[countyName]
+						var countyData = countiesData[countyName]
 
 						// Display the county data if it exists
 						if (countyData) {
@@ -162,9 +164,36 @@
 								fillColor: getColor(countyData["Cases"])
 							});
 						}
-
-						
 					})
+
+					markerCluster.eachLayer(function (marker) {
+						
+						facilityID = marker.facilityID
+						facilityData = facilitiesData[facilityID]
+					
+
+						if (facilityData) {
+
+							staffCases = facilityData['staff_cases'] ? facilityData['staff_cases'] : 0
+							residentCases =  facilityData['resident_cases'] ? facilityData['resident_cases'] : 0
+							totalCases = staffCases + residentCases
+
+							var popupdata = "Prison: " + facilityData['facility_name'] +
+											"<br>County: " + facilityData['county_name'] +
+											"<br>Staff Cases: " + staffCases +
+											"<br>Resident Cases: " + residentCases +
+											"<br>Total Cases: " + totalCases +
+											"<br>Date: " + facilityData['date'];
+
+
+							marker.bindPopup(popupdata)
+						}
+
+					})
+					
+
+
+
 				}
 					
 			})
@@ -209,15 +238,20 @@
 		var markerCluster = L.markerClusterGroup({ chunkedLoading: true });
 
 		// Make a marker for each facility in california
-		{% for facility in facilities %}
+		{% for facilityID, facilityData in facilities.items() %}
 
-		marker = L.circleMarker([{{ facility[5] }}, {{ facility[4] }}], {
+		marker = L.circleMarker([{{ facilityData['latitude'] }}, {{ facilityData['longitude'] }}], {
 			color: "White",
 			fillColor: "Red",
 			pane: "prisonMarkers",
 			fillOpacity: 1
 		})
-		marker.bindPopup("Prison: {{facility[1]}} <br>Covid Cases: ")
+		popupdata = "Prison: {{facilityData['facility_name']}}" +
+					"<br>County: {{facilityData['county_name']}}"
+
+		marker.bindPopup(popupdata)
+		marker.facilityID = {{ facilityID }}
+
 		markerCluster.addLayer(marker);
 
 		{% endfor %}
