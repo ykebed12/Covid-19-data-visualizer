@@ -37,18 +37,14 @@ def get_counties_data(selected_date, state_name="California"):
     cursor = get_db().cursor()
 
     # sql script to get nearest date data point
-    sql = f'''SELECT * 
-                FROM (
-                    SELECT ABS(JULIANDAY(Date(Date)) - JULIANDAY("{selected_date}")) as nearestDate,
-                                    CountyName,
-                                    Date,
-                                    Cases,
-                                    Deaths
-                    FROM CountiesData
-                    WHERE StateName="{state_name}"
-                    ORDER BY nearestDate
-                )
-            GROUP BY CountyName'''
+    sql = f'''Select MIN(ABS(JULIANDAY(Date(Date)) - JULIANDAY("{selected_date}"))) as nearestDate,
+                    CountyName,
+                    Date,
+                    Cases,
+                    Deaths
+                FROM CountiesData
+                WHERE StateName="{state_name}"
+                GROUP BY CountyName'''
 
     # fetch returns tuple
     counties_table = cursor.execute(sql).fetchall()
@@ -71,21 +67,16 @@ def get_facilities_data(selected_date, state_name="California"):
     cursor = get_db().cursor()
 
     # sql script to get nearest date data point
-    sql = f'''SELECT * 
-                FROM (
-                    SELECT  ABS(JULIANDAY(Date(Date)) - JULIANDAY("{selected_date}")) as nearestDate,
-                            FacilitiesData.FacilityID,
-                            FacilityName,
-                            Staffcases,
-                            ResidentCases,
-                            CountyName,
-                            Date
-                    FROM FacilitiesData, Facilities
-                    ON Facilities.FacilityID = FacilitiesData.FacilityID
-                    WHERE StateName="{state_name}"
-                    ORDER BY nearestDate
-                )
-            GROUP BY FacilityID'''
+    sql = f'''Select MIN(ABS(JULIANDAY(Date(Date)) - JULIANDAY("{selected_date}"))) as nearestDate
+                    FacilitiesData.FacilityID,
+                    FacilityName,
+                    Staffcases,
+                    ResidentCases,
+                    CountyName,
+                    Date
+                FROM FacilitiesData, Facilities
+                WHERE StateName="{state_name}"
+                GROUP BY FacilityID'''
 
     # fetch returns tuple
     facilities_table = cursor.execute(sql).fetchall()
