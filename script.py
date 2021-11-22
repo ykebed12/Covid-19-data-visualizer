@@ -67,16 +67,16 @@ def get_facilities_data(selected_date, state_name="California"):
     cursor = get_db().cursor()
 
     # sql script to get nearest date data point
-    sql = f'''Select MIN(ABS(JULIANDAY(Date(Date)) - JULIANDAY("{selected_date}"))) as nearestDate
+    sql = f'''Select MIN(ABS(JULIANDAY(Date(Date)) - JULIANDAY("{selected_date}"))) as nearestDate,
                     FacilitiesData.FacilityID,
                     FacilityName,
                     Staffcases,
                     ResidentCases,
                     CountyName,
                     Date
-                FROM FacilitiesData, Facilities
+                FROM FacilitiesData JOIN Facilities ON FacilitiesData.FacilityID = Facilities.FacilityID
                 WHERE StateName="{state_name}"
-                GROUP BY FacilityID'''
+                GROUP BY Facilities.FacilityID'''
 
     # fetch returns tuple
     facilities_table = cursor.execute(sql).fetchall()
