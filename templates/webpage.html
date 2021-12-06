@@ -33,24 +33,18 @@
 			left: 0;
 			right: 0;
 			background: lightblue;
+			margin-right: 300px;
 		}
 
 		#datePicker {
-			position: absolute;
-			height: 40px;
-			top: 100px;
-			bottom: 20px;
-			padding: 10px;
-			z-index: 1000;
+			height: 15px;
+			padding: 5px;
+			width: 140px;
+
 		}
 		#colorSelector{
-			position: absolute;
-			height: 40px;
-			top: 175px;
-			bottom: 20px;
+			height: 20px;
 			padding: 10px;
-			z-index: 1000;
-			
 		}
 		.info {
 			padding: 6px 8px;
@@ -79,22 +73,47 @@
 			margin-right: 8px;
 			opacity: 0.7;
 		}
+		#sidebar{
+			padding-top: 20px;
+			padding-right: 30px;
+			padding-left: 30px;
+			padding-bottom: 50px;
+			width:250px;
+			float: right;
+			justify-content: space-between;
+			
+		}
+		#text {
+			padding: 10px;
+		}
 
 
 	</style>
 </head>
 
 <body>
-	<input type="date" id="datePicker" onchange='county_handler(event);' min="{{ min_county_date }}"
-		max="{{ max_county_date }}">
 
-	
-	<div id="colorSelector">
-		<p>Single Color Theme</p>
-	<label class="switch">
-		<input id="monocolor" type="checkbox" onchange="switchColor(this)">
-		<span class="slider"></span>
-	</label>
+	<div id='sidebar'>
+
+		<h2 class="text" style="text-align:center; font-weight:bold;">Map Settings</h2>
+		<br>
+		
+		<!-- First row -->
+		<div style='padding:7px'>
+		<label class="text"> Select Date </label>
+		<input type="date" id="datePicker" onchange='county_handler(event);' min="{{ min_county_date }}"
+			max="{{ max_county_date }}">
+		</div>
+		
+		<!-- Second row -->
+		<div style='padding:7px'>
+		<label>Mono Color Theme </label>
+		<label class="switch" style="padding-left: 20px;">
+			<input id="monocolor" type="checkbox" onchange="switchColor(this)">
+			<span class="slider"></span>
+		</label>
+		</div>
+		
 	</div>
 
 	<div id="map"></div>
@@ -207,11 +226,19 @@
 							residentCases =  facilityData['resident_cases'] ? facilityData['resident_cases'] : 0
 							totalCases = staffCases + residentCases
 
+							staffDeaths = facilityData['staff_deaths'] ? facilityData['staff_deaths'] : 0
+							residentDeaths =  facilityData['resident_deaths'] ? facilityData['resident_deaths'] : 0
+							totalDeaths = staffDeaths + residentDeaths
+
 							var popupdata = "Prison: " + facilityData['facility_name'] +
 											"<br>County: " + facilityData['county_name'] +
+											"<br>Facility Type: " + facilityData['webgroup'] +
 											"<br>Staff Cases: " + staffCases +
 											"<br>Resident Cases: " + residentCases +
+											"<br>Staff Deaths: " + staffDeaths +
+											"<br>Resident Deaths: " + residentDeaths +
 											"<br>Total Cases: " + totalCases +
+											"<br>Total Deaths: " + totalDeaths +
 											"<br>Date: " + facilityData['date'];
 
 
@@ -256,7 +283,8 @@
 
 		//Single color switch function
 		function switchColor(cb) {
-
+			
+			legend.update();
 			if (!countiesData) {
 				return;
 			}
@@ -279,13 +307,13 @@
 				}
 			});
 
-			legend.update();
+			
 		}
 
 		// Fit bounderies to map and min zoomming out limit
 		map.fitBounds(countiesLayer.getBounds())
 		map.options.minZoom = map._zoom
-		map.setMaxBounds(countiesLayer.getBounds())
+		map.setMaxBounds(map.getBounds())
 		
 		// Add a pane to bring markers infront of map
 		map.createPane('prisonMarkers');
@@ -305,7 +333,8 @@
 			fillOpacity: 1
 		})
 		popupdata = "Prison: {{facilityData['facility_name']}}" +
-					"<br>County: {{facilityData['county_name']}}"
+					"<br>County: {{facilityData['county_name']}}" +
+					"<br>Facility Type: {{facilityData['webgroup']}}"
 
 		marker.bindPopup(popupdata)
 		marker.facilityID = {{ facilityID }}
@@ -329,7 +358,7 @@
 
 			
 			var grades = [0, 1000, 10000, 100000, 1000000]
-			this._div.innerHTML = "";
+			this._div.innerHTML = '<p style="text-align:center; font-weight:bold;"> County Cases </p>'
 
 			// loop through our intervals and generate a label with a colored square for each interval
 			for (var i = 0; i < grades.length; i++) {

@@ -7,7 +7,7 @@ function getColorRG(cases) {
 			(cases > 100000) 	?	"#ff8000":
 			(cases > 10000) 	? 	"#ffff00":
 			(cases > 1000)		? 	"#80ff00":
-									"#00ff00"
+									"#2cba00"
 };
 
 // Mono color blue mapper

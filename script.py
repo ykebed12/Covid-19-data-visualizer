@@ -70,8 +70,11 @@ def get_facilities_data(selected_date, state_name="California"):
     sql = f'''Select MIN(ABS(JULIANDAY(Date(Date)) - JULIANDAY("{selected_date}"))) as nearestDate,
                     FacilitiesData.FacilityID,
                     FacilityName,
+                    WebGroup,
                     Staffcases,
                     ResidentCases,
+                    StaffDeaths,
+                    ResidentDeaths,
                     CountyName,
                     Date
                 FROM FacilitiesData JOIN Facilities ON FacilitiesData.FacilityID = Facilities.FacilityID
@@ -85,11 +88,14 @@ def get_facilities_data(selected_date, state_name="California"):
     data_dict = dict()
 
     # Order output of table
-    for _, facility_id, facility_name, staff_cases, resident_cases, county_name, date in facilities_table:
+    for _, facility_id, facility_name, webgroup, staff_cases, resident_cases, staff_deaths, resident_deaths, county_name, date in facilities_table:
         data_dict[facility_id] = {
             "facility_name": facility_name,
+            "webgroup": webgroup,
             "staff_cases": staff_cases,
             "resident_cases": resident_cases,
+            "staff_deaths": staff_deaths,
+            "resident_deaths": resident_deaths,
             "county_name": county_name,
             "date": date
         }
@@ -127,12 +133,13 @@ def home():
     facilities = cursor.execute(sql)
     facilities_data = dict()
 
-    for facility_id, facility_name, _, county_name, longitude, latitude in facilities:
+    for facility_id, facility_name, _, county_name, longitude, latitude, webgroup in facilities:
         facilities_data[facility_id] = {
             "facility_name": facility_name,
             "county_name": county_name,
             "longitude": longitude,
-            "latitude": latitude
+            "latitude": latitude,
+            'webgroup': webgroup
         }
 
     # Get max and min date of county
@@ -155,4 +162,4 @@ def data_send(selected_date):
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)
