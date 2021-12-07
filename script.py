@@ -75,6 +75,7 @@ def get_facilities_data(selected_date, state_name="California"):
                     ResidentCases,
                     StaffDeaths,
                     ResidentDeaths,
+                    ResidentPopulation,
                     CountyName,
                     Date
                 FROM FacilitiesData JOIN Facilities ON FacilitiesData.FacilityID = Facilities.FacilityID
@@ -88,7 +89,8 @@ def get_facilities_data(selected_date, state_name="California"):
     data_dict = dict()
 
     # Order output of table
-    for _, facility_id, facility_name, webgroup, staff_cases, resident_cases, staff_deaths, resident_deaths, county_name, date in facilities_table:
+    for (_, facility_id, facility_name, webgroup, staff_cases, resident_cases,
+         staff_deaths, resident_deaths, resident_pop, county_name, date) in facilities_table:
         data_dict[facility_id] = {
             "facility_name": facility_name,
             "webgroup": webgroup,
@@ -96,6 +98,7 @@ def get_facilities_data(selected_date, state_name="California"):
             "resident_cases": resident_cases,
             "staff_deaths": staff_deaths,
             "resident_deaths": resident_deaths,
+            "resident_pop": resident_pop,
             "county_name": county_name,
             "date": date
         }

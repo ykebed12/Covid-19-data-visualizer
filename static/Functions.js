@@ -26,11 +26,11 @@ function getColor(cases) {
 	return document.getElementById("monocolor").checked ? getColorMono(cases) : getColorRG(cases)
 }
 
-function getFacilityColorMono(ratio) {
+function getFacilityColorMono(count) {
 	
 
-	return  (ratio > 0.75) 	? 	"#e31a1c":
-			(ratio > 0.50) 	?	"#fd8d3c":
-			(ratio > 0.25) 	? 	"#fecc5c":
+	return  (count > 500) 	? 	"#e31a1c":
+			(count > 100) 	?	"#fd8d3c":
+			(count > 10) 	? 	"#fecc5c":
 								"#ffffb2"
 }
