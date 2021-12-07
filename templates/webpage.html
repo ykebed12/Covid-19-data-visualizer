@@ -16,6 +16,8 @@
 	<link rel="stylesheet" href="{{ url_for('static', filename='./Leaflet.markercluster/dist/MarkerCluster.css') }}" />
 	<script
 		src="{{ url_for('static', filename='./Leaflet.markercluster/dist/leaflet.markercluster-src.js') }}"></script>
+		<script
+		src="{{ url_for('static', filename='./Leaflet.MarkerCluster.Freezable/src/freezable.js') }}"></script>
 	
 	<!-- Javascript file for relevant functions -->
 	<script src="{{ url_for('static', filename='./Functions.js') }}"></script>
@@ -73,6 +75,10 @@
 			margin-right: 8px;
 			opacity: 0.7;
 		}
+		.legend div {
+			width: 100px;
+			height: 27px
+		}
 		#sidebar{
 			padding-top: 20px;
 			padding-right: 30px;
@@ -85,6 +91,14 @@
 		}
 		#text {
 			padding: 10px;
+		}
+		.markerKey {
+			height: 13px;
+			width: 13px;
+			border-radius: 50%;
+			display: inline-block;
+			border: 3px solid black;
+
 		}
 
 
@@ -108,10 +122,21 @@
 		<!-- Second row -->
 		<div style='padding:7px'>
 		<label>Mono Color Theme </label>
-		<label class="switch" style="padding-left: 20px;">
+		
+		<label class="switch">
 			<input id="monocolor" type="checkbox" onchange="switchColor(this)">
 			<span class="slider"></span>
 		</label>
+		</div>
+
+		<!-- Third row -->
+		<div style='padding:7px'>
+			<label>Cluster toggle </label>
+			
+			<label class="switch">
+				<input id="clusterToggle" type="checkbox" onchange="clusterToggle()">
+				<span class="slider"></span>
+			</label>
 		</div>
 		
 	</div>
@@ -122,6 +147,19 @@
 		var map = L.map('map', { maxZoom: 18, maxWidth: 100}).setView([0, 0], 1);
 		var countiesData; // Contain most recent county data
 		var facilitiesData; // Contain most recent facility data
+		var clustered = true;
+
+		function clusterToggle() {
+
+			if (clustered) {
+				markerCluster.disableClustering();
+			} else {
+				markerCluster.enableClustering();
+			}
+
+			clustered = ! clustered
+
+		}
 
 		// Highlight feature when mouse pointer is over 
 		// a county
@@ -327,7 +365,7 @@
 		{% for facilityID, facilityData in facilities.items() %}
 
 		marker = L.circleMarker([{{ facilityData['latitude'] }}, {{ facilityData['longitude'] }}], {
-			color: "White",
+			color: "black",
 			fillColor: "Red",
 			pane: "prisonMarkers",
 			fillOpacity: 1
@@ -346,7 +384,7 @@
 		// add the markercluster to the map
 		map.addLayer(markerCluster);
 
-		// Mske legend 
+		// Mske county legend 
 		var legend = L.control({position: 'bottomright'});
 		legend.onAdd = function (map) {
 			this._div = L.DomUtil.create('div', 'info legend');
@@ -369,6 +407,33 @@
 		};
 
 		legend.addTo(map);
+
+
+		// make prison legend
+		var facilityLegend = L.control();
+		facilityLegend.onAdd = function (map) {
+
+			var div = L.DomUtil.create('div', 'info legend'),
+				grades = [0, 25, 50, 75]
+	
+
+			div.innerHTML += '<p style="text-align:center; font-weight:bold;"> Facility Cases </p>'
+
+			// loop through our density intervals and generate a label with a colored square for each interval
+			for (var i = 0; i < grades.length; i++) {
+				div.innerHTML +=
+					'<div>' +
+					'<i class="markerKey" style="background:' + getFacilityColorMono((grades[i] + 1) / 100 ) + '"></i> ' +
+					'<label>' +
+					grades[i] + "%" + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '%' + '<br>' : '+') +
+					'</label>' + '</div>';
+					
+			}
+
+			return div;
+		};
+
+		facilityLegend.addTo(map);
 
 
 	</script>

@@ -26,17 +26,11 @@ function getColor(cases) {
 	return document.getElementById("monocolor").checked ? getColorMono(cases) : getColorRG(cases)
 }
 
-function makeLegend (map) {
+function getFacilityColorMono(ratio) {
+	
 
-	var div = L.DomUtil.create('div', 'info legend'),
-		grades = [0, 1000, 10000, 100000, 1000000]
-
-	// loop through our intervals and generate a label with a colored square for each interval
-	for (var i = 0; i < grades.length; i++) {
-		div.innerHTML += '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' +
-			grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
-	}
-
-	return div;
-};
-
+	return  (ratio > 0.75) 	? 	"#e31a1c":
+			(ratio > 0.50) 	?	"#fd8d3c":
+			(ratio > 0.25) 	? 	"#fecc5c":
+								"#ffffb2"
+}
