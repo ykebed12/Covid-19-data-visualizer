@@ -127,7 +127,7 @@ def home():
     facilities = cursor.execute(sql)
     facilities_data = dict()
 
-    for facility_id, facility_name, _, county_name, longitude, latitude in facilities:
+    for facility_id, facility_name, _, county_name, longitude, latitude, _ in list(facilities):
         facilities_data[facility_id] = {
             "facility_name": facility_name,
             "county_name": county_name,
